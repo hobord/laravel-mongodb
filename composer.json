@@ -1,0 +1,32 @@
+{
+  "name": "hobord/mongodb",
+  "description": "MongoDb database connection",
+  "version": "0.0.1",
+  "type": "library",
+  "keywords": [
+    "laravel",
+    "mongodb",
+    "database"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Balazs Szabo",
+      "email": "balazs.szabo@gmail.com",
+    }
+  ],
+  "require": {
+    "php": ">=5.6.4",
+    "laravel/framework": "5.3.*",
+    "mongodb/mongodb": "^1.0.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "@stable"
+  },
+  "autoload": {
+    "psr-4": {
+      "psr-4": {"Hobord\\MongoDb\\": "src/"}
+    }
+  },
+  "minimum-stability": "dev"
+}

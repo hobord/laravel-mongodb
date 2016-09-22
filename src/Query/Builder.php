@@ -1046,4 +1046,9 @@ class Builder extends BaseBuilder
 
         return parent::__call($method, $parameters);
     }
+
+    public function getParentRelation()
+    {
+
+    }
 }

@@ -29,11 +29,11 @@ class Builder extends EloquentBuilder
     {
         // Intercept operations on embedded models and delegate logic
         // to the parent relation instance.
-        if ($relation = $this->model->getParentRelation()) {
-            $relation->performUpdate($this->model, $values);
-
-            return 1;
-        }
+//        if ($relation = $this->model->getParentRelation()) {
+//            $relation->performUpdate($this->model, $values);
+//
+//            return 1;
+//        }
 
         return $this->query->update($this->addUpdatedAtColumn($values), $options);
     }
@@ -48,11 +48,11 @@ class Builder extends EloquentBuilder
     {
         // Intercept operations on embedded models and delegate logic
         // to the parent relation instance.
-        if ($relation = $this->model->getParentRelation()) {
-            $relation->performInsert($this->model, $values);
-
-            return true;
-        }
+//        if ($relation = $this->model->getParentRelation()) {
+//            $relation->performInsert($this->model, $values);
+//
+//            return true;
+//        }
 
         return parent::insert($values);
     }
@@ -69,7 +69,8 @@ class Builder extends EloquentBuilder
         // Intercept operations on embedded models and delegate logic
         // to the parent relation instance.
         if ($relation = $this->model->getParentRelation()) {
-            $relation->performInsert($this->model, $values);
+//        dd($relation);
+//            $relation->performInsert($this->model, $values);
 
             return $this->model->getKey();
         }

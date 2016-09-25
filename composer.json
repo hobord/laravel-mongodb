@@ -1,6 +1,6 @@
 {
   "name": "hobord/mongodb",
-  "description": "MongoDb database connection",
+  "description": "MongoDb database connection and model",
   "version": "0.0.1",
   "type": "library",
   "keywords": [
@@ -25,7 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "psr-4": {"Hobord\\MongoDb\\": "src/"}
+      "psr-4": {"Hobord\\MongoDb": "src/"}
     }
   },
   "minimum-stability": "dev"

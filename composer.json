@@ -1,7 +1,7 @@
 {
   "name": "hobord/mongodb",
   "description": "MongoDb database connection and model",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "library",
   "keywords": [
     "laravel",

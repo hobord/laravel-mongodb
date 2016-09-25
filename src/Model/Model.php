@@ -137,34 +137,11 @@ abstract class Model extends BaseModel
     }
 
     /**
-     * Dynamically retrieve attributes on the model.
-     *
-     * @param  string  $key
-     * @return mixed
-     */
-    public function __get($key)
-    {
-        return $this->getAttribute($key);
-    }
-
-    /**
-     * Dynamically set attributes on the model.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return void
-     */
-    public function __set($key, $value)
-    {
-        $this->setAttribute($key, $value);
-    }
-
-    /**
-     * Fill attributes on the model.
-     *
-     * @param  array $attributes
-     * @return void
-     */
+    * Fill attributes on the model.
+    *
+    * @param  array $attributes
+    * @return void
+    */
     public function fill(array $attributes = [])
     {
         foreach ($attributes as $key => $attribute) {
@@ -184,16 +161,6 @@ abstract class Model extends BaseModel
     }
 
     /**
-     * Convert the object into something JSON serializable.
-     *
-     * @return array
-     */
-    public function jsonSerialize()
-    {
-        return $this->toArray();
-    }
-
-    /**
      * Convert the model instance to an array.
      *
      * @return array
@@ -205,16 +172,6 @@ abstract class Model extends BaseModel
         return $attributes;
     }
 
-    /**
-     * Create a new Eloquent query builder for the model.
-     *
-     * @param  \Hobord\MongoDb\Query\Builder $query
-     * @return \Hobord\MongoDb\Model\Builder|static
-     */
-    public function newEloquentBuilder($query)
-    {
-        return new Builder($query);
-    }
     /**
      * Get a new query builder instance for the connection.
      *

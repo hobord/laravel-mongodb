@@ -22,40 +22,12 @@ abstract class Model extends BaseModel
      */
     protected $primaryKey = '_id';
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table;
-
-    /**
-     * The number of models to return for pagination.
-     *
-     * @var int
-     */
-    protected $perPage = 15;
-
-    /**
-     * The connection resolver instance.
-     *
-     * @var \Illuminate\Database\ConnectionResolverInterface
-     */
-    protected static $resolver;
-
-    /**
+     /**
      * The the attributes field class names.
      *
      * @var array
      */
     protected $schema = [];
-
-    /**
-     * the object fields.
-     *
-     * @var array
-     */
-    protected $attributes = [];
 
     public $timestamps = false;
 

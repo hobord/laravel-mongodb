@@ -24,9 +24,7 @@
     "phpunit/phpunit": "@stable"
   },
   "autoload": {
-    "psr-4": {
-      "psr-4": {"Hobord\\MongoDb": "src/"}
-    }
+    "psr-4": {"Hobord\\MongoDb": "src/"}
   },
   "minimum-stability": "dev"
 }

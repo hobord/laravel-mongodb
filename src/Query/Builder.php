@@ -327,6 +327,7 @@ class Builder extends BaseBuilder
 
             // Return results as an array with numeric keys
             $results = iterator_to_array($cursor, false);
+
             return $this->useCollections ? new Collection($results) : $results;
         }
     }
@@ -490,6 +491,18 @@ class Builder extends BaseBuilder
         return (1 == (int) $result->isAcknowledged());
     }
 
+    public function convertToArray($values)
+    {
+        foreach ($values as $key => &$value) {
+            if (is_subclass_of($value, 'Hobord\MongoDb\Model\Field')) {
+                $value = $value->ToArray();
+            }
+            if (is_array($value)) {
+                $value = $this->convertToArray($value);
+            }
+        }
+        return $values;
+    }
     /**
      * Insert a new record and get the value of the primary key.
      *
@@ -499,6 +512,7 @@ class Builder extends BaseBuilder
      */
     public function insertGetId(array $values, $sequence = null)
     {
+        $values = $this->convertToArray($values);
         $result = $this->collection->insertOne($values);
 
         if (1 == (int) $result->isAcknowledged()) {
@@ -520,6 +534,7 @@ class Builder extends BaseBuilder
      */
     public function update(array $values, array $options = [])
     {
+        $values = $this->convertToArray($values);
         // Use $set as default operator.
         if (! starts_with(key($values), '$')) {
             $values = ['$set' => $values];

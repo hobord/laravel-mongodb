@@ -9,10 +9,12 @@ use Illuminate\Contracts\Support\Arrayable;
 class Field implements Arrayable, Jsonable, JsonSerializable
 {
     protected $schema = [];
+    protected $model = null;
     protected $attributes = [];
 
-    public function __construct(array $attributes = [])
+    public function __construct(array $attributes = [], Model $model)
     {
+        $this->model = $model;
         $this->fill($attributes);
     }
 
@@ -48,6 +50,7 @@ class Field implements Arrayable, Jsonable, JsonSerializable
 
         return $this;
     }
+
     public function attributesToArray()
     {
         $attributes = $this->attributes;
@@ -60,6 +63,7 @@ class Field implements Arrayable, Jsonable, JsonSerializable
 
         return $attributes;
     }
+
     public function toArray()
     {
         return $this->attributesToArray();
@@ -92,4 +96,49 @@ class Field implements Arrayable, Jsonable, JsonSerializable
         //TODO implement events
         return;
     }
+
+    /**
+     * Handle dynamic method calls into the model.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        // Unset method
+        if ($method == 'unset') {
+            return call_user_func_array([$this, 'drop'], $parameters);
+        }
+        return parent::__call($method, $parameters);
+    }
+    /**
+     * Dynamically retrieve attributes on the model.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
+
+    /**
+     * Dynamically set attributes on the model.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this->setAttribute($key, $value);
+    }
+
+    /**
+     * Fill attributes on the model.
+     *
+     * @param  array $attributes
+     * @return void
+     */
 }

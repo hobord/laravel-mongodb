@@ -150,17 +150,6 @@ abstract class Model extends BaseModel
     }
 
     /**
-     * Convert the model instance to JSON.
-     *
-     * @param  int  $options
-     * @return string
-     */
-    public function toJson($options = 0)
-    {
-        return json_encode($this->jsonSerialize(), $options);
-    }
-
-    /**
      * Convert the model instance to an array.
      *
      * @return array

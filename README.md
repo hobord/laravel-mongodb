@@ -33,3 +33,46 @@ You can connect to multiple servers or replica sets with the following configura
 ],
 
 ```
+
+
+##Example usage
+
+```
+use Hobord\MongoDb\Model\Model;
+
+class TestModel extends Model
+{
+    protected $table = "test_collection";
+
+    protected $schema = [
+        'pricing' => 'App\PricingField'
+    ];
+}
+
+#####
+
+namespace App;
+
+use Hobord\MongoDb\Model\Field;
+
+class PricingField extends Field
+{
+
+}
+
+#####
+
+
+TestModel::create([
+    'sku'=> '00e8da9c',
+    'pricing' => [
+        'list' => 500,
+        'retail' => 600,
+        'action' => 700
+    ]
+]);
+
+
+$test = TestModel::where('sku', '00e8da9c')->first();
+
+```

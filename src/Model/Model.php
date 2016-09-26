@@ -4,6 +4,7 @@ namespace Hobord\MongoDb\Model;
 
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Hobord\MongoDb\Query\Builder as QueryBuilder;
+use Illuminate\Contracts\Support\Arrayable;
 use MongoDB\BSON\ObjectID;
 
 abstract class Model extends BaseModel
@@ -221,7 +222,7 @@ abstract class Model extends BaseModel
             if ($value instanceof ObjectID) {
                 $value = (string) $value;
             }
-            if (is_subclass_of($value, 'Hobord\MongoDb\Model\Field')) {
+            if($value instanceof Arrayable) {
                 $value = $value->ToArray();
             }
         }

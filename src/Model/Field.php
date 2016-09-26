@@ -37,11 +37,57 @@ class Field implements Arrayable, Jsonable, JsonSerializable
      */
     protected static $dispatcher;
 
+    /**
+     * User exposed observable events.
+     *
+     * @var array
+     */
+    protected $observables = [];
+
 
     public function __construct(array $attributes = [], Model $model)
     {
         $this->model = $model;
         $this->fill($attributes);
+    }
+
+    /**
+     * Handle dynamic method calls into the model.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        // Unset method
+        if ($method == 'unset') {
+            return call_user_func_array([$this, 'drop'], $parameters);
+        }
+        return parent::__call($method, $parameters);
+    }
+
+    /**
+     * Dynamically retrieve attributes on the model.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
+
+    /**
+     * Dynamically set attributes on the model.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this->setAttribute($key, $value);
     }
 
     /**
@@ -131,6 +177,8 @@ class Field implements Arrayable, Jsonable, JsonSerializable
     {
         return $this->toArray();
     }
+
+    /** ************************************************************** */
 
     /**
      * Register an observer with the Model.
@@ -258,12 +306,13 @@ class Field implements Arrayable, Jsonable, JsonSerializable
         if (! isset(static::$dispatcher)) {
             return true;
         }
-        $event = "eloquent.{$event}: ".static::class;
+        $event = "mogodbfield.{$event}: ".static::class;
 
         $method = $halt ? 'until' : 'fire';
 
         return static::$dispatcher->$method($event, $this);
     }
+
     /**
      * Get the event dispatcher instance.
      *
@@ -280,7 +329,6 @@ class Field implements Arrayable, Jsonable, JsonSerializable
      * @param  \Illuminate\Contracts\Events\Dispatcher  $dispatcher
      * @return void
      */
-
     public static function setEventDispatcher(Dispatcher $dispatcher)
     {
         static::$dispatcher = $dispatcher;
@@ -296,48 +344,8 @@ class Field implements Arrayable, Jsonable, JsonSerializable
         static::$dispatcher = null;
     }
 
-    /**
-     * Handle dynamic method calls into the model.
-     *
-     * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        // Unset method
-        if ($method == 'unset') {
-            return call_user_func_array([$this, 'drop'], $parameters);
-        }
-        return parent::__call($method, $parameters);
-    }
-    /**
-     * Dynamically retrieve attributes on the model.
-     *
-     * @param  string  $key
-     * @return mixed
-     */
-    public function __get($key)
-    {
-        return $this->getAttribute($key);
-    }
+    /** ************************************************************** */
 
-    /**
-     * Dynamically set attributes on the model.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return void
-     */
-    public function __set($key, $value)
-    {
-        $this->setAttribute($key, $value);
-    }
 
-    /**
-     * Fill attributes on the model.
-     *
-     * @param  array $attributes
-     * @return void
-     */
+
 }

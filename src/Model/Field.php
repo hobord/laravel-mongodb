@@ -4,7 +4,7 @@ namespace Hobord\MongoDb\Model;
 
 use Illuminate\Contracts\Events\Dispatcher;
 
-class Field implements FieldInterface
+abstract class Field implements FieldInterface
 {
     /**
      * The the attributes field class names.

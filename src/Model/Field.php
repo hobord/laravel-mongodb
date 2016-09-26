@@ -307,7 +307,6 @@ class Field implements Arrayable, Jsonable, JsonSerializable
             return true;
         }
         $event = "mogodbfield.{$event}: ".static::class;
-
         $method = $halt ? 'until' : 'fire';
 
         return static::$dispatcher->$method($event, $this);

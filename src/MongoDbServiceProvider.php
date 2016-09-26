@@ -1,6 +1,7 @@
 <?php
 namespace Hobord\MongoDb;
 
+use Hobord\MongoDb\Model\Field;
 use Illuminate\Support\ServiceProvider;
 use Hobord\MongoDb\Model\Model;
 
@@ -9,6 +10,8 @@ class MongoDbServiceProvider extends ServiceProvider
     public function boot()
     {
         Model::setConnectionResolver($this->app['db']);
+
+        Field::setEventDispatcher($this->app['events']);
     }
 
     public function register()

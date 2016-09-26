@@ -42,13 +42,29 @@ abstract class Model extends BaseModel
     }
 
     /**
+     * Handle dynamic method calls into the model.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        // Unset method
+        if ($method == 'unset') {
+            return call_user_func_array([$this, 'drop'], $parameters);
+        }
+        return parent::__call($method, $parameters);
+    }
+
+    /**
      * Update the model's update timestamp.
      *
      * @return bool
      */
     public function touch()
     {
-        return $this->save();
+        return false; //$this->save();
     }
 
     /**
@@ -61,11 +77,13 @@ abstract class Model extends BaseModel
         $this->original = [];
 
         foreach ($this->attributes as $key => $attribute) {
-            if($attribute instanceof ObjectID) {
-                continue;
-            }
             if(is_object($attribute)) {
-                $this->original[$key] = clone $attribute;
+                if($attribute instanceof ObjectID) {
+                    $this->original[$key] = $attribute;
+                }
+                else {
+                    $this->original[$key] = clone $attribute;
+                }
             }
             else {
                 $this->original[$key] = $attribute;
@@ -76,7 +94,28 @@ abstract class Model extends BaseModel
 
         return $this;
     }
+    /**
+     * Sync a single original attribute with its current value.
+     *
+     * @param  string  $attribute
+     * @return $this
+     */
+    public function syncOriginalAttribute($attribute)
+    {
+        if(is_object($this->attributes[$attribute])) {
+            if($this->attributes[$attribute] instanceof ObjectID) {
+                $this->original[$attribute] = $attribute;
+            }
+            else {
+                $this->original[$attribute] = clone $this->attributes[$attribute];
+            }
+        }
+        else {
+            $this->original[$attribute] = $attribute;
+        }
 
+        return $this;
+    }
     /**
      * Get an attribute from the model.
      *
@@ -191,18 +230,25 @@ abstract class Model extends BaseModel
     }
 
     /**
-     * Handle dynamic method calls into the model.
+     * Fire the given event for the model.
      *
-     * @param  string  $method
-     * @param  array  $parameters
+     * @param  string  $event
+     * @param  bool  $halt
      * @return mixed
      */
-    public function __call($method, $parameters)
+    protected function fireModelEvent($event, $halt = true)
     {
-        // Unset method
-        if ($method == 'unset') {
-            return call_user_func_array([$this, 'drop'], $parameters);
+        if (! isset(static::$dispatcher)) {
+            return true;
         }
-        return parent::__call($method, $parameters);
+
+        // We will append the names of the class to the event to distinguish it from
+        // other model events that are fired, allowing us to listen on each model
+        // event set individually instead of catching event for all the models.
+        $event = "mogodbmodel.{$event}: ".static::class;
+
+        $method = $halt ? 'until' : 'fire';
+
+        return static::$dispatcher->$method($event, $this);
     }
 }

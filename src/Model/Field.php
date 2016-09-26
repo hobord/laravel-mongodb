@@ -2,12 +2,9 @@
 
 namespace Hobord\MongoDb\Model;
 
-use JsonSerializable;
-use Illuminate\Contracts\Support\Jsonable;
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Events\Dispatcher;
 
-class Field implements Arrayable, Jsonable, JsonSerializable
+class Field implements FieldInterface
 {
     /**
      * The the attributes field class names.

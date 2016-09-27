@@ -38,6 +38,7 @@ You can connect to multiple servers or replica sets with the following configura
 ##Example usage
 
 ```
+namespace App;
 use Hobord\MongoDb\Model\Model;
 
 class TestModel extends Model
@@ -72,7 +73,11 @@ TestModel::create([
     ]
 ]);
 
-
 $test = TestModel::where('sku', '00e8da9c')->first();
+$test->pricing->retail = 999;
+$test->karma = "ok";
+$test->save();
+
+$test = TestModel::where('pricing.retail', '>', 600)->skip(1)->take(1)->get();
 
 ```

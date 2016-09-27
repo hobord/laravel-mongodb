@@ -95,6 +95,7 @@ abstract class Model extends BaseModel
 
         return $this;
     }
+
     /**
      * Sync a single original attribute with its current value.
      *
@@ -130,10 +131,21 @@ abstract class Model extends BaseModel
         foreach ($this->attributes as $key => $value) {
             if (! array_key_exists($key, $this->original)) {
                 $dirty[$key] = $value;
-            } elseif ($value !== $this->original[$key] &&
+            }
+            elseif ($value !== $this->original[$key] &&
                 ! $this->originalIsNumericallyEquivalent($key)) {
-                if( is_object($value) &&
-                    count($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()))>0) {
+
+                if( gettype($value) == gettype($this->original[$key]) ) {
+                    if( $value instanceof Arrayable &&
+                        count($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()))>0) {
+                        $dirty[$key] = $value;
+                    }
+                    elseif ( is_array($value) &&
+                        count($this->diffAssocRecursive($value, $this->original[$key]))>0) {
+                        $dirty[$key] = $value;
+                    }
+                }
+                else {
                     $dirty[$key] = $value;
                 }
             }

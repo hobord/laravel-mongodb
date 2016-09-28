@@ -142,24 +142,6 @@ class Field implements FieldInterface
         return $this;
     }
 
-    public function cloneAttributes()
-    {
-        foreach ($this->attributes as $key => $attribute) {
-            if(is_object($attribute)) {
-                if($attribute instanceof Type) {
-                    $this->attributes[$key] = $attribute;
-                }
-                else {
-                    $this->attributes[$key] = clone $attribute;
-                    $this->attributes[$key]->cloneAttributes();
-                }
-            }
-            else {
-                $this->attributes[$key] = $attribute;
-            }
-        }
-    }
-
     /**
      * Fill attributes on the model.
      *

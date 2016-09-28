@@ -81,12 +81,11 @@ abstract class Model extends BaseModel
 
         foreach ($this->attributes as $key => $attribute) {
             if(is_object($attribute)) {
-                if($attribute instanceof ObjectID) {
-                    $this->original[$key] = $attribute;
+                if($attribute instanceof Type) {
+                    $this->original[$key] = (string) $attribute;
                 }
-                else {
-                    $this->original[$key] = clone $attribute;
-                    $this->original[$key]->cloneAttributes();
+                elseif($this->attributes[$attribute] instanceof Arrayable) {
+                    $this->original[$attribute] = $this->attributes[$attribute]->getArray();
                 }
             }
             else {
@@ -106,12 +105,11 @@ abstract class Model extends BaseModel
     public function syncOriginalAttribute($attribute)
     {
         if(is_object($this->attributes[$attribute])) {
-            if($this->attributes[$attribute] instanceof ObjectID) {
-                $this->original[$attribute] = $attribute;
+            if($this->attributes[$attribute] instanceof Type) {
+                $this->original[$attribute] = (string) $attribute;
             }
-            else {
-                $this->original[$attribute] = clone $this->attributes[$attribute];
-                $this->original[$attribute]->cloneAttributes();
+            elseif($this->attributes[$attribute] instanceof Arrayable) {
+                $this->original[$attribute] = $this->attributes[$attribute]->getArray();
             }
         }
         else {
@@ -135,18 +133,17 @@ abstract class Model extends BaseModel
             }
             elseif ($value !== $this->original[$key] &&
                 ! $this->originalIsNumericallyEquivalent($key)) {
-                if( gettype($value) == gettype($this->original[$key]) ) {
-                    if( $value instanceof Arrayable &&
-                        count($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()))>0) {
-                        $dirty[$key] = $value;
-                    }
-                    elseif ( is_array($value) &&
-                        count($this->diffAssocRecursive($value, $this->original[$key]))>0) {
-                        $dirty[$key] = $value;
-                    }
-                    elseif (!($value instanceof Arrayable) && !is_array($value)) {
-                        $dirty[$key] = $value;
-                    }
+                if( $value instanceof Arrayable &&
+                    count($this->diffAssocRecursive($value->toArray(), $this->original[$key]))>0) {
+                    $dirty[$key] = $value;
+                }
+                elseif ( is_array($value) &&
+                    count($this->diffAssocRecursive($value, $this->original[$key]))>0) {
+                    $dirty[$key] = $value;
+                }
+                elseif ($value instanceof Type &&
+                    $value == (string) $this->original[$key]) {
+                    $dirty[$key] = $value;
                 }
                 else {
                     $dirty[$key] = $value;

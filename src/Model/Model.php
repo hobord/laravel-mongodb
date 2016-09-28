@@ -4,8 +4,10 @@ namespace Hobord\MongoDb\Model;
 
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Hobord\MongoDb\Query\Builder as QueryBuilder;
+use Hobord\MongoDb\Model\Field;
 use Illuminate\Contracts\Support\Arrayable;
 use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\Type;
 
 abstract class Model extends BaseModel
 {
@@ -84,14 +86,13 @@ abstract class Model extends BaseModel
                 }
                 else {
                     $this->original[$key] = clone $attribute;
+                    $this->original[$key]->cloneAttributes();
                 }
             }
             else {
                 $this->original[$key] = $attribute;
             }
         }
-
-//        $this->original = $this->attributes;
 
         return $this;
     }
@@ -110,6 +111,7 @@ abstract class Model extends BaseModel
             }
             else {
                 $this->original[$attribute] = clone $this->attributes[$attribute];
+                $this->original[$attribute]->cloneAttributes();
             }
         }
         else {
@@ -127,14 +129,12 @@ abstract class Model extends BaseModel
     public function getDirty()
     {
         $dirty = [];
-
         foreach ($this->attributes as $key => $value) {
             if (! array_key_exists($key, $this->original)) {
                 $dirty[$key] = $value;
             }
             elseif ($value !== $this->original[$key] &&
                 ! $this->originalIsNumericallyEquivalent($key)) {
-
                 if( gettype($value) == gettype($this->original[$key]) ) {
                     if( $value instanceof Arrayable &&
                         count($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()))>0) {
@@ -142,6 +142,9 @@ abstract class Model extends BaseModel
                     }
                     elseif ( is_array($value) &&
                         count($this->diffAssocRecursive($value, $this->original[$key]))>0) {
+                        $dirty[$key] = $value;
+                    }
+                    elseif (!($value instanceof Arrayable) && !is_array($value)) {
                         $dirty[$key] = $value;
                     }
                 }
@@ -154,6 +157,16 @@ abstract class Model extends BaseModel
         return $dirty;
     }
 
+    public function test() {
+//        foreach ($this->attributes as $key => $value) {
+//            if( $value instanceof Arrayable) {
+//                print "$key\n";
+//                print_r($this->original[$key]->toArray());
+//                print_r($value->toArray());
+//                print_r($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()));
+//            }
+//        }
+    }
     /**
      * Recursively computes the difference of arrays with additional index check.
      *
@@ -227,8 +240,12 @@ abstract class Model extends BaseModel
 
         if(array_key_exists($key, $this->schema)) {
             if(!is_object($value)) {
-                $value = new $this->schema[$key]($value, $this);
+                $value = new $this->schema[$key]($value, $this, null);
             }
+        }
+
+        if(is_array($value)) {
+            $value = new Field($value, $this, null);
         }
 
         $this->attributes[$key] = $value;
@@ -294,7 +311,7 @@ abstract class Model extends BaseModel
         $attributes = $this->attributes;
 
         foreach ($attributes as $key => &$value) {
-            if ($value instanceof ObjectID) {
+            if ($value instanceof Type) {
                 $value = (string) $value;
             }
             if($value instanceof Arrayable) {

@@ -4,8 +4,10 @@ namespace Hobord\MongoDb\Model;
 
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Hobord\MongoDb\Query\Builder as QueryBuilder;
+use Hobord\MongoDb\Model\Field;
 use Illuminate\Contracts\Support\Arrayable;
 use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\Type;
 
 abstract class Model extends BaseModel
 {
@@ -75,23 +77,7 @@ abstract class Model extends BaseModel
      */
     public function syncOriginal()
     {
-        $this->original = [];
-
-        foreach ($this->attributes as $key => $attribute) {
-            if(is_object($attribute)) {
-                if($attribute instanceof ObjectID) {
-                    $this->original[$key] = $attribute;
-                }
-                else {
-                    $this->original[$key] = clone $attribute;
-                }
-            }
-            else {
-                $this->original[$key] = $attribute;
-            }
-        }
-
-//        $this->original = $this->attributes;
+        $this->original = $this->toArray();
 
         return $this;
     }
@@ -105,11 +91,11 @@ abstract class Model extends BaseModel
     public function syncOriginalAttribute($attribute)
     {
         if(is_object($this->attributes[$attribute])) {
-            if($this->attributes[$attribute] instanceof ObjectID) {
-                $this->original[$attribute] = $attribute;
+            if($this->attributes[$attribute] instanceof Type) {
+                $this->original[$attribute] = (string) $attribute;
             }
-            else {
-                $this->original[$attribute] = clone $this->attributes[$attribute];
+            elseif($this->attributes[$attribute] instanceof Arrayable) {
+                $this->original[$attribute] = $this->attributes[$attribute]->getArray();
             }
         }
         else {
@@ -134,16 +120,17 @@ abstract class Model extends BaseModel
             }
             elseif ($value !== $this->original[$key] &&
                 ! $this->originalIsNumericallyEquivalent($key)) {
-
-                if( gettype($value) == gettype($this->original[$key]) ) {
-                    if( $value instanceof Arrayable &&
-                        count($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()))>0) {
-                        $dirty[$key] = $value;
-                    }
-                    elseif ( is_array($value) &&
-                        count($this->diffAssocRecursive($value, $this->original[$key]))>0) {
-                        $dirty[$key] = $value;
-                    }
+                if( $value instanceof Arrayable &&
+                    count($this->diffAssocRecursive($value->toArray(), $this->original[$key]))>0) {
+                    $dirty[$key] = $value;
+                }
+                elseif ( is_array($value) &&
+                    count($this->diffAssocRecursive($value, $this->original[$key]))>0) {
+                    $dirty[$key] = $value;
+                }
+                elseif ($value instanceof Type &&
+                    $value == (string) $this->original[$key]) {
+                    $dirty[$key] = $value;
                 }
                 else {
                     $dirty[$key] = $value;
@@ -227,8 +214,12 @@ abstract class Model extends BaseModel
 
         if(array_key_exists($key, $this->schema)) {
             if(!is_object($value)) {
-                $value = new $this->schema[$key]($value, $this);
+                $value = new $this->schema[$key]($value, $this, null);
             }
+        }
+
+        if(is_array($value)) {
+            $value = new Field($value, $this, null);
         }
 
         $this->attributes[$key] = $value;
@@ -294,7 +285,7 @@ abstract class Model extends BaseModel
         $attributes = $this->attributes;
 
         foreach ($attributes as $key => &$value) {
-            if ($value instanceof ObjectID) {
+            if ($value instanceof Type) {
                 $value = (string) $value;
             }
             if($value instanceof Arrayable) {

@@ -3,8 +3,11 @@
 namespace Hobord\MongoDb\Model;
 
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Support\Arrayable;
+use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\Type;
 
-abstract class Field implements FieldInterface
+class Field implements FieldInterface
 {
     /**
      * The the attributes field class names.
@@ -19,6 +22,13 @@ abstract class Field implements FieldInterface
      * @var object
      */
     protected $model = null;
+
+    /**
+     * The filed parent object.
+     *
+     * @var object
+     */
+    protected $parent = null;
 
     /**
      * The field's attributes.
@@ -42,9 +52,10 @@ abstract class Field implements FieldInterface
     protected $observables = [];
 
 
-    public function __construct(array $attributes = [], Model $model)
+    public function __construct(array $attributes = [], Model $model, Field $parent=null)
     {
         $this->model = $model;
+        $this->parent = $parent;
         $this->fill($attributes);
     }
 
@@ -88,6 +99,22 @@ abstract class Field implements FieldInterface
     }
 
     /**
+     * Get an attribute from the model.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function getAttribute($key)
+    {
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->attributes[$key];
+        }
+        if ( $key == 'id' ) {
+            return (string) $this->attributes['_id'];
+        }
+    }
+
+    /**
      * Set a given attribute on the model.
      *
      * @param  string  $key
@@ -100,8 +127,12 @@ abstract class Field implements FieldInterface
 
         if(array_key_exists($key, $this->schema)) {
             if(!is_object($value)) {
-                $value = new $this->schema[$key]($value, $this);
+                $value = new $this->schema[$key]($value, $this->model, $this);
             }
+        }
+
+        if(is_array($value)) {
+            $value = new Field($value, $this->model, $this);
         }
 
         $this->attributes[$key] = $value;
@@ -136,7 +167,10 @@ abstract class Field implements FieldInterface
         $attributes = $this->attributes;
 
         foreach ($attributes as $key => &$value) {
-            if (is_subclass_of($value, 'Hobord\MongoDb\Model\Field')) {
+            if ($value instanceof Type) {
+                $value = (string) $value;
+            }
+            if($value instanceof Arrayable) {
                 $value = $value->ToArray();
             }
         }

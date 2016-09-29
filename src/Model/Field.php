@@ -100,6 +100,8 @@ class Field implements FieldInterface
         $this->setAttribute($key, $value);
     }
 
+    /** ************************************************************** */
+
     /**
      * Get an attribute from the model.
      *
@@ -117,18 +119,6 @@ class Field implements FieldInterface
         if ( $key == 'id' ) {
             return (string) $this->attributes['_id'];
         }
-    }
-
-    /**
-     * Get the value of an attribute using its mutator.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return mixed
-     */
-    protected function mutateAttribute($key, $value)
-    {
-        return $this->{'get'.Str::studly($key).'Attribute'}($value);
     }
 
     /**
@@ -233,6 +223,20 @@ class Field implements FieldInterface
     public function jsonSerialize()
     {
         return $this->toArray();
+    }
+
+    /** ************************************************************** */
+
+    /**
+     * Get the value of an attribute using its mutator.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function mutateAttribute($key, $value)
+    {
+        return $this->{'get'.Str::studly($key).'Attribute'}($value);
     }
 
     /**

@@ -77,21 +77,7 @@ abstract class Model extends BaseModel
      */
     public function syncOriginal()
     {
-        $this->original = [];
-
-        foreach ($this->attributes as $key => $attribute) {
-            if(is_object($attribute)) {
-                if($attribute instanceof Type) {
-                    $this->original[$key] = (string) $attribute;
-                }
-                elseif($this->attributes[$attribute] instanceof Arrayable) {
-                    $this->original[$attribute] = $this->attributes[$attribute]->getArray();
-                }
-            }
-            else {
-                $this->original[$key] = $attribute;
-            }
-        }
+        $this->original = $this->toArray();
 
         return $this;
     }
@@ -127,6 +113,7 @@ abstract class Model extends BaseModel
     public function getDirty()
     {
         $dirty = [];
+
         foreach ($this->attributes as $key => $value) {
             if (! array_key_exists($key, $this->original)) {
                 $dirty[$key] = $value;
@@ -154,16 +141,6 @@ abstract class Model extends BaseModel
         return $dirty;
     }
 
-    public function test() {
-//        foreach ($this->attributes as $key => $value) {
-//            if( $value instanceof Arrayable) {
-//                print "$key\n";
-//                print_r($this->original[$key]->toArray());
-//                print_r($value->toArray());
-//                print_r($this->diffAssocRecursive($value->toArray(), $this->original[$key]->toArray()));
-//            }
-//        }
-    }
     /**
      * Recursively computes the difference of arrays with additional index check.
      *

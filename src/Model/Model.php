@@ -4,10 +4,11 @@ namespace Hobord\MongoDb\Model;
 
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Hobord\MongoDb\Query\Builder as QueryBuilder;
-use Hobord\MongoDb\Model\Field;
 use Illuminate\Contracts\Support\Arrayable;
-use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Type;
+use MongoDB\BSON\UTCDateTime;
+use Carbon\Carbon;
+use Hobord\MongoDb\Model\Field;
 
 abstract class Model extends BaseModel
 {
@@ -180,6 +181,33 @@ abstract class Model extends BaseModel
     }
 
     /**
+     * Check the attribute path.
+     * The path delimiter is the "." (key.subkey.subsubkey)
+     * @param string $path
+     * @return bool
+     */
+    public function isAttributeExists($path)
+    {
+        $attributes = $this->toArray();
+        $path = explode('.',$path);
+        if (isset($attributes[$path[0]])) {
+            $current = $attributes[array_shift($path)];
+            foreach ($path as $key) {
+                if (isset($current[$key])) {
+                    $current = $current[$key];
+                }
+                else {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
      * Get an attribute from the model.
      *
      * @param  string  $key
@@ -216,6 +244,10 @@ abstract class Model extends BaseModel
             if(!is_object($value)) {
                 $value = new $this->schema[$key]($value, $this, null);
             }
+        }
+
+        if($value instanceof UTCDateTime) {
+            $value = Carbon::createFromTimestampUTC($value->toDateTime()->getTimestamp());
         }
 
         if(is_array($value)) {
@@ -265,17 +297,6 @@ abstract class Model extends BaseModel
     }
 
     /**
-     * Get a new query builder instance for the connection.
-     *
-     * @return Builder
-     */
-    protected function newBaseQueryBuilder()
-    {
-        $connection = $this->getConnection();
-        return new QueryBuilder($connection, $connection->getPostProcessor());
-    }
-
-    /**
      * Convert the model's attributes to an array.
      *
      * @return array
@@ -294,6 +315,17 @@ abstract class Model extends BaseModel
         }
 
         return $attributes;
+    }
+
+    /**
+     * Get a new query builder instance for the connection.
+     *
+     * @return Builder
+     */
+    protected function newBaseQueryBuilder()
+    {
+        $connection = $this->getConnection();
+        return new QueryBuilder($connection, $connection->getPostProcessor());
     }
 
     /**

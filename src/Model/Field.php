@@ -4,8 +4,9 @@ namespace Hobord\MongoDb\Model;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
-use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Type;
+use MongoDB\BSON\UTCDateTime;
+use Carbon\Carbon;
 
 class Field implements FieldInterface
 {
@@ -129,6 +130,9 @@ class Field implements FieldInterface
             if(!is_object($value)) {
                 $value = new $this->schema[$key]($value, $this->model, $this);
             }
+        }
+        if($value instanceof UTCDateTime) {
+            $value = Carbon::createFromTimestampUTC($value->toDateTime()->getTimestamp());
         }
 
         if(is_array($value)) {

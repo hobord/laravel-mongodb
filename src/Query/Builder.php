@@ -7,6 +7,7 @@ use Illuminate\Database\Query\Builder as BaseBuilder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Support\Arrayable;
 use Hobord\Mongodb\Connection;
 use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Regex;
@@ -494,7 +495,11 @@ class Builder extends BaseBuilder
     public function convertToArray($values)
     {
         foreach ($values as $key => &$value) {
-            if (is_subclass_of($value, 'Hobord\MongoDb\Model\Field')) {
+
+            if ($value instanceof \Carbon\Carbon) {
+                $value = new \MongoDB\BSON\UTCDateTime($value->timestamp * 1000 );
+            }
+            if ($value instanceof Arrayable) {
                 $value = $value->ToArray();
             }
             if (is_array($value)) {
@@ -503,6 +508,7 @@ class Builder extends BaseBuilder
         }
         return $values;
     }
+
     /**
      * Insert a new record and get the value of the primary key.
      *

@@ -216,6 +216,9 @@ abstract class Model extends BaseModel
     public function getAttribute($key)
     {
         if (array_key_exists($key, $this->attributes)) {
+            if ($this->hasGetMutator($key)) {
+                return $this->mutateAttribute($key, $this->attributes[$key]);
+            }
             return $this->attributes[$key];
         }
         if ( $key == 'id' ) {
@@ -232,6 +235,14 @@ abstract class Model extends BaseModel
      */
     public function setAttribute($key, $value)
     {
+        if ($this->hasSetMutator($key)) {
+            $method = 'set'.Str::studly($key).'Attribute';
+
+            return $this->{$method}($value);
+        }
+        if ( $key == 'id' ) {
+            $key = "_id";
+        }
         // Convert _id to ObjectID.
         if ($key == '_id' and is_string($value)) {
             $builder = $this->newBaseQueryBuilder();
@@ -257,6 +268,8 @@ abstract class Model extends BaseModel
         $this->attributes[$key] = $value;
 
         $this->fireModelEvent('setAttributeAfter', [$key, $value]);
+
+        return $this;
     }
 
     public function setRawAttributes(array $attributes, $sync = false)

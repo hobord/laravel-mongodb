@@ -2,6 +2,7 @@
 
 namespace Hobord\MongoDb\Model;
 
+use Illuminate\Support\Str;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
 use MongoDB\BSON\Type;
@@ -108,11 +109,26 @@ class Field implements FieldInterface
     public function getAttribute($key)
     {
         if (array_key_exists($key, $this->attributes)) {
+            if ($this->hasGetMutator($key)) {
+                return $this->mutateAttribute($key, $this->attributes[$key]);
+            }
             return $this->attributes[$key];
         }
         if ( $key == 'id' ) {
             return (string) $this->attributes['_id'];
         }
+    }
+
+    /**
+     * Get the value of an attribute using its mutator.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function mutateAttribute($key, $value)
+    {
+        return $this->{'get'.Str::studly($key).'Attribute'}($value);
     }
 
     /**
@@ -125,6 +141,12 @@ class Field implements FieldInterface
     public function setAttribute($key, $value)
     {
         $this->fireModelEvent('setAttributeBefore', [$key, $value]);
+
+        if ($this->hasSetMutator($key)) {
+            $method = 'set'.Str::studly($key).'Attribute';
+
+            return $this->{$method}($value);
+        }
 
         if(array_key_exists($key, $this->schema)) {
             if(!is_object($value)) {
@@ -211,6 +233,28 @@ class Field implements FieldInterface
     public function jsonSerialize()
     {
         return $this->toArray();
+    }
+
+    /**
+     * Determine if a get mutator exists for an attribute.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function hasGetMutator($key)
+    {
+        return method_exists($this, 'get'.Str::studly($key).'Attribute');
+    }
+
+    /**
+     * Determine if a set mutator exists for an attribute.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function hasSetMutator($key)
+    {
+        return method_exists($this, 'set'.Str::studly($key).'Attribute');
     }
 
     /** ************************************************************** */
